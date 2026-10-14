@@ -1,0 +1,42 @@
+
+name: Build Doppler Speed APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'DopplerSpeed-Android-Project.zip'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract Android project
+        run: |
+          unzip -o DopplerSpeed-Android-Project.zip -d /tmp/doppler
+          cp -R /tmp/doppler/doppler_project/. .
+
+      - name: Build APK
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.9'
+          arguments: assembleDebug --stacktrace
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DopplerSpeed-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
